@@ -1,2 +1,3 @@
 robotbase.01.dll
 robotbase.25.dll 5
+robotbase.06.dll 1
