@@ -300,7 +300,7 @@ void CrobottournamentDlg::CountRobots()
 				List.get();
 				List.get(c);
 				int num = c - '0';
-				if (num > 0 && num < 10)
+				if (num >= 0 && num < 10)
 					robotsNumber += num;
 				else
 				{
@@ -340,7 +340,7 @@ void CrobottournamentDlg::LoadRobots()
 				List.get();
 				List.get(c);
 				int num = c - '0';
-				if (num > 0 && num < 10)
+				if (num >= 0 && num < 10)
 					robotsNumber += num;
 				else
 				{

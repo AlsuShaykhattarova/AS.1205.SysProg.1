@@ -89,7 +89,9 @@ struct robot
 	int newx;
 	int newy;
 	int newA;
+	int newAT;
 	int newP;
+	int newPT;
 	int newV;
 	int newL;
 	int newE;

@@ -113,6 +113,7 @@ void CfieldDlg::Play()
 	if (log)
 	{
 		prot.open("AttacksProtocol.txt", ofstream::trunc);
+		prot << "Параметры, указанные через / - (текущее значение параметра)/(значение параметра на начало шага)\n\n";
 		CString t = CTime::GetCurrentTime().Format("%H:%M:%S");
 		prot << t << " - БИТВА НАЧАЛАСЬ\n";
 	}
@@ -188,6 +189,7 @@ void CfieldDlg::Play()
 				int cury = paintDlg.robots[actingRobot]->y;
 				paintDlg.robots[actingRobot]->newx = curx;
 				paintDlg.robots[actingRobot]->newy = cury;
+				paintDlg.robots[actingRobot]->newAT = -1;
 
 				if (Step)
 				{
@@ -259,8 +261,8 @@ void CfieldDlg::Play()
 													paintDlg.robots[actingRobot]->attackedBy[victim] = true;
 													if (log)
 														prot <<
-															paintDlg.robots[actingRobot]->name << " (x = " << curx << ", y = " << cury << ", A = " << paintDlg.robots[actingRobot]->A << ", P = " << paintDlg.robots[actingRobot]->P << ", V = " << paintDlg.robots[actingRobot]->V << ", E = " << paintDlg.robots[actingRobot]->E <<") атаковал " << 
-															paintDlg.robots[victim]->name << " (x = " << destx << ", y = " << desty << ", A = " << paintDlg.robots[victim]->A << ", P = " << paintDlg.robots[victim]->P << ", V = " << paintDlg.robots[victim]->V << ", E = " << paintDlg.robots[victim]->E <<
+															paintDlg.robots[actingRobot]->name << " (x = " << curx << ", y = " << cury << ", A = " << paintDlg.robots[actingRobot]->A << ", P = " << paintDlg.robots[actingRobot]->P << ", V = " << paintDlg.robots[actingRobot]->V << ", E = " << paintDlg.robots[actingRobot]->newE << "/" << paintDlg.robots[actingRobot]->E << ") атаковал " << 
+															paintDlg.robots[victim]->name << " (x = " << destx << ", y = " << desty << ", A = " << paintDlg.robots[victim]->A << ", P = " << paintDlg.robots[victim]->newP << "/" << paintDlg.robots[victim]->P << ", V = " << paintDlg.robots[victim]->V << ", E = " << paintDlg.robots[victim]->newE << "/" << paintDlg.robots[victim]->E <<
 															") с RND = " << rnd;
 													if (A > P)	//удачная атака
 													{
@@ -268,6 +270,11 @@ void CfieldDlg::Play()
 														{
 															paintDlg.robots[victim]->newP -= A-P;
 															paintDlg.robots[victim]->newL -= A-P;
+															if (paintDlg.robots[victim]->newP < 0)
+															{
+																paintDlg.robots[victim]->newL -= paintDlg.robots[victim]->newP;
+																paintDlg.robots[victim]->newP = 0;
+															}
 														}
 														else
 															paintDlg.robots[victim]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
@@ -280,6 +287,11 @@ void CfieldDlg::Play()
 														{
 															paintDlg.robots[actingRobot]->newA -= P-A;
 															paintDlg.robots[actingRobot]->newL -= P-A;
+															if (paintDlg.robots[actingRobot]->newA < 0)
+															{
+																paintDlg.robots[actingRobot]->newL -= paintDlg.robots[victim]->newA;
+																paintDlg.robots[actingRobot]->newA = 0;
+															}
 														}
 														else
 															paintDlg.robots[actingRobot]->newE -= abs(P - A)*paintDlg.FieldParameters.Emax/paintDlg.FieldParameters.Lmax;
@@ -300,24 +312,14 @@ void CfieldDlg::Play()
 								{
 									if (Step->actions[i]->A < 0 || Step->actions[i]->P < 0 || Step->actions[i]->V < 0)
 										break;
+									
 									int Lcur = paintDlg.robots[actingRobot]->L;
-									int Lnew = paintDlg.robots[actingRobot]->newL;
 									int Ldes = Step->actions[i]->A + Step->actions[i]->P + Step->actions[i]->V;
 									if (Ldes <= Lcur)
 									{
-										if (Ldes <= Lnew)
-										{
-											paintDlg.robots[actingRobot]->newA = Step->actions[i]->A;
-											paintDlg.robots[actingRobot]->newP = Step->actions[i]->P;
-											paintDlg.robots[actingRobot]->newV = Step->actions[i]->V;
-										}
-										else
-										{
-											double k = (double)Lnew/(double)Lcur;
-											paintDlg.robots[actingRobot]->newA = (double)Step->actions[i]->A*k;
-											paintDlg.robots[actingRobot]->newP = (double)Step->actions[i]->P*k;
-											paintDlg.robots[actingRobot]->newV = (double)Step->actions[i]->V*k;
-										}
+										paintDlg.robots[actingRobot]->newAT = Step->actions[i]->A;
+										paintDlg.robots[actingRobot]->newPT = Step->actions[i]->P;
+										paintDlg.robots[actingRobot]->newV = Step->actions[i]->V;
 									}
 									break;
 								}
@@ -380,22 +382,32 @@ void CfieldDlg::Play()
 				else if (paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] >-1 || paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] == SEVERAL)	//если кто-то стоит
 					paintDlg.matrix[paintDlg.robots[i]->newx][paintDlg.robots[i]->newy] = SEVERAL;	//
 
-				if (paintDlg.robots[i]->newA < 0)
-				{
-					paintDlg.robots[i]->newL -= paintDlg.robots[i]->newA;
-					paintDlg.robots[i]->newA = 0;
-				}
-				if (paintDlg.robots[i]->newP < 0)
-				{
-					paintDlg.robots[i]->newL -= paintDlg.robots[i]->newP;
-					paintDlg.robots[i]->newP = 0;
-				}
 				if (paintDlg.robots[i]->newL < 0)
 					paintDlg.robots[i]->newL = 0;
 				if (paintDlg.robots[i]->newL > paintDlg.FieldParameters.Lmax)
 					paintDlg.robots[i]->newL = paintDlg.FieldParameters.Lmax;
 				if (paintDlg.robots[i]->newE > paintDlg.FieldParameters.Emax)
 					paintDlg.robots[i]->newE = paintDlg.FieldParameters.Emax;
+
+				if (paintDlg.robots[i]->newAT != -1)
+				{
+					int Lcur = paintDlg.robots[i]->L;
+					int Lnew = paintDlg.robots[i]->newL;
+					int Ldes = paintDlg.robots[i]->newAT + paintDlg.robots[i]->newPT + paintDlg.robots[i]->newV;
+					if (Ldes <= Lnew)
+					{
+						paintDlg.robots[i]->newA = paintDlg.robots[i]->newAT;
+						paintDlg.robots[i]->newP = paintDlg.robots[i]->newPT;
+					}
+					else
+					{
+						double k = (double)Lnew/(double)Lcur;
+						paintDlg.robots[i]->newA = (double)paintDlg.robots[i]->newAT*k;
+						paintDlg.robots[i]->newP = (double)paintDlg.robots[i]->newPT*k;
+						paintDlg.robots[i]->newV = (double)paintDlg.robots[i]->newV*k;
+					}
+				}
+
 				paintDlg.robots[i]->A = paintDlg.robots[i]->newA;
 				paintDlg.robots[i]->P = paintDlg.robots[i]->newP;
 				paintDlg.robots[i]->V = paintDlg.robots[i]->newV;
@@ -459,15 +471,21 @@ void CfieldDlg::Play()
 	}
 	Sort();
 	string results = "Место    Имя                     Статус    Убил   Очки\n";
+	int place = 0;
+	int points = paintDlg.FieldParameters.rivals*paintDlg.FieldParameters.K + paintDlg.FieldParameters.Emax + 42;
 	for (int i = 0; i < paintDlg.FieldParameters.rivals; i++)
 	{
 		int id = finalStandings[i];
+		if (paintDlg.robots[id]->points < points || (!paintDlg.robots[id]->alive && paintDlg.robots[finalStandings[i-1]]->alive))
+			place++;
+		points = paintDlg.robots[id]->points;
+
 		string space2 = "   ";
 		if (paintDlg.robots[id]->name.GetLength() < 13)
 			space2+="   ";
 
 		string space1 = ".           ";
-		if (i<9)
+		if (place<10)
 			space1+="  ";
 
 		string status = "";
@@ -476,14 +494,15 @@ void CfieldDlg::Play()
 		else if (paintDlg.robots[id]->killed)
 		{
 			status = "Убит    ";
-			paintDlg.robots[id]->points += paintDlg.FieldParameters.N + paintDlg.FieldParameters.K*paintDlg.FieldParameters.rivals;
+			points += paintDlg.FieldParameters.N + paintDlg.FieldParameters.K*paintDlg.FieldParameters.rivals;
 		}
 		else
 		{
 			status = "Умер   ";
-			paintDlg.robots[id]->points += paintDlg.FieldParameters.N + paintDlg.FieldParameters.K*paintDlg.FieldParameters.rivals;
+			points += paintDlg.FieldParameters.N + paintDlg.FieldParameters.K*paintDlg.FieldParameters.rivals;
 		}
-		results += to_string(i+1) + space1 + paintDlg.robots[id]->name.GetString() + space2 + status + "   " + to_string(paintDlg.robots[id]->kills) + "           "  + to_string(paintDlg.robots[id]->points) + "\n";
+		
+		results += to_string(place) + space1 + paintDlg.robots[id]->name.GetString() + space2 + status + "   " + to_string(paintDlg.robots[id]->kills) + "           "  + to_string(points) + "\n";
 	}
 	if (log)
 	{
