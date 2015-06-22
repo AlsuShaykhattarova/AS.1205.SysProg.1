@@ -26,7 +26,7 @@ void DoStep(stepinfo *Info, step *Step)
 	int L = Info->robots[myNumber]->L;
 	int xTech, yTech,x,y,xEner,yEner;
 	int myID = Info->robots[myNumber]->playerid;
-	float gain;
+	float gain=0;
 	int minP = 1000;
 	int minPID = -1;
 	for (int i = 0; i < Info->field->rivals - 1; i++)
