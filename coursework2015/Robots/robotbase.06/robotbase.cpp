@@ -62,6 +62,8 @@ void DoStep(stepinfo *Info, step *Step)
 	{
 		if (Info->robots[myNumber]->E < 800 && myX == xEner && myY == yEner)
 			DoAction(Step, ACT_TECH, 0, L, 0);
+			if (Info->robots[myNumber]->L < 80 && myX == xTech && myY == yTech)
+			DoAction(Step, ACT_TECH, 0, L, 0);
 		else
 			if (Info->robots[myNumber]->E > 500)
 			{
