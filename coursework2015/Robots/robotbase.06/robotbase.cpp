@@ -65,7 +65,7 @@ void DoStep(stepinfo *Info, step *Step)
 		else
 			if (Info->robots[myNumber]->E > 500)
 			{
-			if (Info->robots[myNumber]->L > 50)
+			if (Info->robots[myNumber]->L > 50 && Info->stepnum>200)
 			{
 				int targetNumber = -1, targetX, targetY, targetlengthTo;
 				if (Info->robots[minPID]->playerid != myID && Info->robots[minPID]->alive)
