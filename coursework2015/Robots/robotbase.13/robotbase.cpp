@@ -137,7 +137,7 @@ void DoStep(stepinfo *Info, step *Step)
 	for (int i = 0; i < rivals - 2; i++)
 	{
 		
-		if (robotsinfo[i].E <= minP && Info->robots[i]->alive && Info->robots[i]->playerid!=myID)
+		if (robotsinfo[i].E <= minP && Info->robots[i]->alive && Info->robots[i]->playerid != myID && Info->robots[i]->name!="robotbase.06")
 			{
 				minP = robotsinfo[i].E;
 				minPID = i;
