@@ -134,6 +134,8 @@ void DoStep(stepinfo *Info, step *Step)
 
 	int minP = 1000;
 	int minPID = -1;
+	if(Info->stepnum>0.15*Info->field->N)
+	{
 	for (int i = 0; i < rivals - 2; i++)
 	{
 		
@@ -144,7 +146,7 @@ void DoStep(stepinfo *Info, step *Step)
 			}
 	}
 	
-	
+	}
 
 
 
