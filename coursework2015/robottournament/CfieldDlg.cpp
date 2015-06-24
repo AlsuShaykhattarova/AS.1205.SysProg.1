@@ -87,7 +87,7 @@ END_MESSAGE_MAP()
 void CfieldDlg::OnBnClickedOk()
 {
 	// TODO: добавьте свой код обработчика уведомлений
-	//AfxGetMainWnd()->DestroyWindow();
+	
 	//CDialogEx::OnOK();
 	OnClose();
 }
@@ -477,7 +477,7 @@ void CfieldDlg::Play()
 	{
 		int id = finalStandings[i];
 		if (paintDlg.robots[id]->points < points || (!paintDlg.robots[id]->alive && paintDlg.robots[finalStandings[i-1]]->alive))
-			place++;
+			place = i+1;
 		points = paintDlg.robots[id]->points;
 
 		string space2 = "   ";
@@ -614,7 +614,6 @@ void CfieldDlg::OnBnClickedButton1()
 void CfieldDlg::OnClose()
 {
 	// TODO: добавьте свой код обработчика сообщений или вызов стандартного
-
 	CDialogEx::OnClose();
 	exit(0);
 }
