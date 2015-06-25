@@ -9,6 +9,98 @@ using namespace std;
 extern "C"
 int flag = 0;
 
+
+bool Move(stepinfo *Info, step *Step, int OBJx, int OBJy, int OBJlengthTo, int myNumber)
+{
+	if (OBJlengthTo <= ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))))
+	{
+
+		if (OBJy - Info->robots[myNumber]->y && OBJx - Info->robots[myNumber]->x == 0 && Info->robots[myNumber]->E <= 0.9* Info->field->Emax)
+		{
+			return 0;
+		}
+		else
+		{
+			DoAction(Step, ACT_TECH, 0, (1.0)*(Info->robots[myNumber]->L), (0)*(Info->robots[myNumber]->L));
+			DoAction(Step, ACT_MOVE, OBJx - Info->robots[myNumber]->x, OBJy - Info->robots[myNumber]->y);
+		}
+
+	}
+	else{
+
+		int movex = abs(Info->robots[myNumber]->x - OBJx)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / OBJlengthTo;
+		int movey = abs(Info->robots[myNumber]->y - OBJy)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / OBJlengthTo;
+
+		DoAction(Step, ACT_TECH, 0, (0.4)*(Info->robots[myNumber]->L), (0.6)*(Info->robots[myNumber]->L));
+		DoAction(Step, ACT_MOVE, movex, movey);
+	}
+	return 1;
+}
+
+//void Attack(stepinfo *Info, step *Step,int minPID)
+//{
+//	int targetNumber = -1, targetX, targetY, targetlengthTo;
+//	if (Info->robots[minPID]->playerid != myID && Info->robots[minPID]->alive)
+//	{
+//		targetNumber = minPID;
+//		targetX = Info->robots[targetNumber]->x;
+//		targetY = Info->robots[targetNumber]->y;
+//		targetlengthTo = sqrt(pow(abs(myX - Info->robots[targetNumber]->x), 2) + pow(abs(myY - Info->robots[targetNumber]->y), 2));
+//	}
+//	if (targetNumber == -1)
+//	{
+//
+//		int myStep = ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax)));
+//		int movex = int(myStep / 2);
+//		int movey = int(myStep / 2);
+//		DoAction(Step, ACT_MOVE, movex, movey);
+//		return;
+//
+//	}
+//
+//	if (targetlengthTo <= ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))))
+//
+//
+//	{
+//		DoAction(Step, ACT_MOVE, targetX - myX - 1, targetY - myY - 1);
+//		if (((Info->field->rndmax)*(Info->robots[myNumber]->A)*(Info->robots[myNumber]->E) / (Info->field->Emax)) > ((1 - Info->field->rndmax)*(Info->robots[targetNumber]->P)*(Info->robots[targetNumber]->E) / (Info->field->Emax)))
+//		{
+//			if ((Info->field->Rmax)*(Info->robots[myNumber]->V)*(Info->robots[myNumber]->E) / ((Info->field->Emax)*(Info->field->Lmax)))
+//			{
+//				DoAction(Step, ACT_ATTACK, targetX - myX, targetY - myY);
+//				gain = 0;
+//			}
+//		}
+//		else {
+//			DoAction(Step, ACT_TECH, (gain + 0.45)*(Info->robots[myNumber]->L), (0.20 - 2 * gain)*(Info->robots[myNumber]->L), (gain + 0.35)*(Info->robots[myNumber]->L));
+//			gain = gain + 0.05;
+//		}
+//	}
+//	else
+//	{
+//		DoAction(Step, ACT_TECH, (0.45)*(Info->robots[myNumber]->L), (0.20)*(Info->robots[myNumber]->L), (0.35)*(Info->robots[myNumber]->L));
+//
+//
+//
+//		int movex = abs(myX - targetX)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / targetlengthTo;
+//		int movey = abs(myY - targetY)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / targetlengthTo;
+//		DoAction(Step, ACT_MOVE, movex, movey);
+//	}
+//
+//}
+//
+//
+//
+
+
+
+
+
+
+
+
+
+
 struct robotsinf
 {
 	CString name;
@@ -33,7 +125,11 @@ float gain=0;
 
 
 
-
+int myNumber;
+int myID;
+int myX;
+int myY;
+double myR;
 
 
 void DoStep(stepinfo *Info, step *Step)
@@ -41,11 +137,11 @@ void DoStep(stepinfo *Info, step *Step)
 	srand(time(0));
 
 
-	int myNumber = Info->yourNumber;
-	int myID = Info->robots[myNumber]->playerid;
-	int myX = Info->robots[myNumber]->x;
-	int myY = Info->robots[myNumber]->y;
-	double myR = Info->field->Rmax*Info->robots[myNumber]->V / Info->field->Lmax*Info->robots[myNumber]->E / Info->field->Emax;
+	 myNumber = Info->yourNumber;
+	myID = Info->robots[myNumber]->playerid;
+	 myX = Info->robots[myNumber]->x;
+myY = Info->robots[myNumber]->y;
+myR = Info->field->Rmax*Info->robots[myNumber]->V / Info->field->Lmax*Info->robots[myNumber]->E / Info->field->Emax;
 
 	int rivals = Info->field->rivals;
 	robotsinf * robotsinfo;
@@ -71,7 +167,7 @@ void DoStep(stepinfo *Info, step *Step)
 
 		double buf;
 		int d;
-		if (Info->stepnum>0.95*Info->field->N)
+		if (Info->stepnum>0.95*Info->field->N || Info->robots[myNumber]->E<Info->field->Emax)
 			d = 2;
 		else d = 1;
 		if (Info->objects[i]->type == -2)
@@ -81,15 +177,7 @@ void DoStep(stepinfo *Info, step *Step)
 			if (CHARGER.lengthTo > buf)
 			{
 				int danger = 0;
-				for (int j = 0; j < rivals - 2; j++)
-				{
-					if (abs(Info->robots[j]->alive))
-					{
-						double theirlength = sqrt(pow(abs(Info->robots[j]->x - Info->objects[i]->x), 2) + pow(abs(Info->robots[j]->y - Info->objects[i]->y), 2));
-						if (theirlength < Info->field->Rmax)
-							danger++;
-					}
-				}
+				
 				if (danger <= d)
 				{
 					CHARGER.lengthTo = buf;
@@ -106,7 +194,7 @@ void DoStep(stepinfo *Info, step *Step)
 				int danger = 0;
 				for (int j = 0; j < rivals - 2; j++)
 				{
-					if (abs(Info->robots[j]->alive))
+					if (Info->robots[j]->alive)
 					{
 						double theirlength = sqrt(pow(abs(Info->robots[j]->x - Info->objects[i]->x), 2) + pow(abs(Info->robots[j]->y - Info->objects[i]->y), 2));
 						if (theirlength < Info->field->Rmax)
@@ -150,117 +238,23 @@ int minP = 1000;
 
 
 
-	if (Info->robots[myNumber]->E < 0.7*Info->field->Emax || Info->stepnum>0.95*Info->field->N)
+	if (Info->robots[myNumber]->L > 0.7*Info->field->Lmax || Info->stepnum>0.95*Info->field->N)
 	{
 
-
-		if (CHARGER.lengthTo <= ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))))
-		{
-			
-			if (CHARGER.y - myY && CHARGER.x - myX == 0 && Info->robots[myNumber]->E <= 0.9* Info->field->Emax)
-			{
-				delete[]robotsinfo;
-				return;
-			}
-			else
-			{
-				DoAction(Step, ACT_TECH, 0, (1.0)*(Info->robots[myNumber]->L), (0)*(Info->robots[myNumber]->L));
-				DoAction(Step, ACT_MOVE, CHARGER.x - myX, CHARGER.y - myY);
-			}
-
-		}
-		else{
-
-			int movex = abs(myX - CHARGER.x)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / CHARGER.lengthTo;
-			int movey = abs(myY - CHARGER.y)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / CHARGER.lengthTo;
-
-			DoAction(Step, ACT_TECH, 0, (0.4)*(Info->robots[myNumber]->L), (0.6)*(Info->robots[myNumber]->L));
-			DoAction(Step, ACT_MOVE, movex, movey);
-		}
+		if (!Move(Info,Step, CHARGER.x, CHARGER.y, CHARGER.lengthTo, myNumber))
+			return;
+		
 	}
 	else
 	{
-		if (Info->robots[myNumber]->L < 0.9*Info->field->Lmax)
-		{
-
-			if (TECH.lengthTo <= ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))))
-			{
-
-				if (TECH.y - myY && TECH.x - myX == 0 && Info->robots[myNumber]->E <= 0.9* Info->field->Emax)
-				{
-					delete[]robotsinfo;
-					return;
-				}
-				else
-				{
-					DoAction(Step, ACT_TECH, 0, (1.0)*(Info->robots[myNumber]->L), (0)*(Info->robots[myNumber]->L));
-					DoAction(Step, ACT_MOVE, TECH.x - myX, TECH.y - myY);
-				}
-			}
-			else{
-
-				int movex = abs(myX - TECH.x)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / TECH.lengthTo;
-				int movey = abs(myY - TECH.y)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / TECH.lengthTo;
-
-				DoAction(Step, ACT_TECH, 0, (0.4)*(Info->robots[myNumber]->L), (0.6)*(Info->robots[myNumber]->L));
-				DoAction(Step, ACT_MOVE, movex, movey);
-			}
-		}
-
-		else
-		{
-
-			int targetNumber = -1, targetX, targetY, targetlengthTo;
-			if (Info->robots[minPID]->playerid != myID && Info->robots[minPID]->alive)
-			{
-				targetNumber = minPID;
-				targetX = Info->robots[targetNumber]->x;
-				targetY = Info->robots[targetNumber]->y;
-				targetlengthTo = sqrt(pow(abs(myX - Info->robots[targetNumber]->x), 2) + pow(abs(myY - Info->robots[targetNumber]->y), 2));
-			}
-			if (targetNumber == -1)
-			{
-
-				int myStep = ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax)));
-				int movex = int(myStep / 2);
-				int movey = int(myStep / 2);
-				DoAction(Step, ACT_MOVE, movex, movey);
-				delete[]robotsinfo;
+	
+			if (!Move(Info, Step, TECH.x, TECH.y, TECH.lengthTo, myNumber))
 				return;
-
-			}
 			
-			if (targetlengthTo <= ((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))))
-
-
-			{
-				DoAction(Step, ACT_MOVE, targetX - myX - 1, targetY - myY - 1);
-				if (((Info->field->rndmax)*(Info->robots[myNumber]->A)*(Info->robots[myNumber]->E) / (Info->field->Emax)) > ((1 - Info->field->rndmax)*(Info->robots[targetNumber]->P)*(Info->robots[targetNumber]->E) / (Info->field->Emax)))
-				{
-					if ((Info->field->Rmax)*(Info->robots[myNumber]->V)*(Info->robots[myNumber]->E) / ((Info->field->Emax)*(Info->field->Lmax)))
-					{
-						DoAction(Step, ACT_ATTACK, targetX - myX, targetY - myY);
-						gain = 0;
-					}
-				}
-				else {
-					DoAction(Step, ACT_TECH, (gain + 0.45)*(Info->robots[myNumber]->L), (0.20 - 2 * gain)*(Info->robots[myNumber]->L), (gain + 0.35)*(Info->robots[myNumber]->L));
-					gain = gain + 0.05;
-				}
-			}
-			else
-			{
-				DoAction(Step, ACT_TECH, (0.45)*(Info->robots[myNumber]->L), (0.20)*(Info->robots[myNumber]->L), (0.35)*(Info->robots[myNumber]->L));
-
 		
-
-				int movex = abs(myX - targetX)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / targetlengthTo;
-				int movey = abs(myY - targetY)*((Info->robots[myNumber]->V)*(Info->field->Vmax)*(Info->robots[myNumber]->E) / ((Info->field->Lmax)*(Info->field->Emax))) / targetlengthTo;
-				DoAction(Step, ACT_MOVE, movex, movey);
-			}
-		}
 	}
 			delete[]robotsinfo;
 			return;
 
 	}
+	
