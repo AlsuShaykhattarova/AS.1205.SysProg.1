@@ -6,10 +6,10 @@
 
 using namespace std;
 
-double dlina(int x1, int y1, int x2, int y2, int H, int W)
+double dlina(int x1, int y1, int x2, int y2, int H, int W) //funkciya, kotoraya nahodit rasstoyanie mejdu dvumya tochkami, s uchetom toroidalnogo prostranstva
 {
 	double s1,s2,s3,s4;
-	s1 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
+	s1 = sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2)); //formuli rascheta rasstoyaniya mejdu dvumya tochkami dlya toroidalnogo polya
 	s2 = sqrt(pow(abs(x1 - x2)-W,2) + (y1 - y2)*(y1 - y2));
 	s3 = sqrt(pow(abs(y1 - y2) - H, 2) + (x1 - x2)*(x1 - x2));
 	s4 = sqrt(pow(abs(y1 - y2) - H, 2) + pow(abs(x1 - x2) - W, 2));
@@ -19,43 +19,43 @@ double dlina(int x1, int y1, int x2, int y2, int H, int W)
 	return s1;
 }
 
-int shag(int x, int Pi)
+int shag(int x, int Pi) //funkciya, kotoraya vischitivaet napravlenie dvijeniya s uchetom toroidalnogo polya, po odnoi koordinate
 {
 	int x1,x2;
 	x1 = x + Pi;
 	x2 = x - Pi;
-	if (abs(x1) > abs(x2)) x1 = x2;
-	if (abs(x) > abs(x1)) x = x1;
+	if (abs(x1) > abs(x2)) x1 = x2;//наименьшее по модулю значение
+	if (abs(x) > abs(x1)) x = x1;//наименьшее по модулю значение
 	return x;
 
 }
 
-struct point
+struct point //структура нужна для возврата 2х значений х и у
 {
 	int x, y;
 };
 
 
-point max_pyt(int x1, int y1, int x2, int y2, double p_s_lim, int H, int W)
+point max_pyt(int x1, int y1, int x2, int y2, double p_s_lim, int H, int W) 
 {
 	point t;
 
-	if (dlina(x1, y1, x2, y2, H, W) <= p_s_lim)
+	if (dlina(x1, y1, x2, y2, H, W) <= p_s_lim)//если мы можем дойти до точки, то возвращаются координаты новой точки
 	{
-		t.x = x2;
+		t.x = x2;//высчитываем точку в которую мы можем перейти
 		t.y = y2;
 		return t;
 	}
 
-	int znak_x=0, znak_y=0;
+	int znak_x=0, znak_y=0; //знаки указывающие направление движения к точке 0, 1, -1 
 
-	if (abs(x1 - x2) > W / 2)
+	if (abs(x1 - x2) > W / 2) //для учета тороидального пространства
 	{
 		if (x1 <= W / 2) x1 = x1 + W;
 		else x2 = x2 + W;
 	}
 
-	if (abs(y1 - y2) > H / 2)
+	if (abs(y1 - y2) > H / 2 //для учета тороидального пространства
 	{
 		if (y1 <= H / 2) y1 = y1 + H;
 		else y2 = y2 + H;
@@ -63,19 +63,19 @@ point max_pyt(int x1, int y1, int x2, int y2, double p_s_lim, int H, int W)
 
 	double dolya_x, dolya_y;
 
-	if (abs(x1 - x2)) znak_x = (x2 - x1) / abs(x2 - x1);
-	if (abs(y1 - y2)) znak_y = (y2 - y1) / abs(y2 - y1);
+	if (abs(x1 - x2)) znak_x = (x2 - x1) / abs(x2 - x1);//определяем направление в какую сторону нам идти:
+	if (abs(y1 - y2)) znak_y = (y2 - y1) / abs(y2 - y1);// если наша координата совпадает с координатой целевой точки то
 
 
-	t.x = x1;
+	t.x = x1; 
 	t.y = y1;
 
-	if (!(znak_x))
+	if (!(znak_x))//условие выполнится тогда и только тогда, когда znak_x == 0
 	{
 		t.y = t.y + znak_y* int(p_s_lim);
 	}
 
-	if (!(znak_y))
+	if (!(znak_y))//условие выполнится тогда и только тогда, когда znak_y == 0
 	{
 		t.x = t.x + znak_x* int(p_s_lim);
 	}
@@ -84,7 +84,7 @@ point max_pyt(int x1, int y1, int x2, int y2, double p_s_lim, int H, int W)
 	{
 		double s;
 
-		dolya_x = abs(x2 - x1*1.0)/(abs(x2 - x1) + abs(y2 - y1));
+		dolya_x = abs(x2 - x1*1.0)/(abs(x2 - x1) + abs(y2 - y1)); //треугольный расчет(гипотенузы) для нахождения координаты промежуточной точки
 		dolya_y = abs(y2 - y1*1.0)/(abs(x2 - x1) + abs(y2 - y1));
 
 		s = p_s_lim / (sqrt(dolya_x*dolya_x + dolya_y*dolya_y));
@@ -95,22 +95,21 @@ point max_pyt(int x1, int y1, int x2, int y2, double p_s_lim, int H, int W)
 		t.x = t.x + znak_x * int(dolya_x);
 		t.y = t.y + znak_y * int(dolya_y);
 
-		while (dlina(x1,y1,t.x,t.y,H,W)>=p_s_lim)
+		while (dlina(x1,y1,t.x,t.y,H,W)>=p_s_lim) // пока расстоние от нашей точки до точки в которую мы хотим попасть больше расстояния на которое мы шагаем
 		{
-			if (t.x != x1)
+			if (t.x != x1)//то если координата нашей точки в которой мы стоим не равна координате точки целевой...
 			{
-				t.x = t.x - znak_x;
-			}
+				t.x = t.x - znak_x;//то мы отнимаем от целевой координаты znak_x (+1 или -1) и засчет этого уменьшаем расстояние
 			else
 			{
-				t.y = t.y - znak_y;
+				t.y = t.y - znak_y; //то мы отнимаем от целевой координаты znak_у (+1 или -1) и засчет этого уменьшаем расстояние
 			}
 		}
 
 
 	}
 
-	if (t.x >= W) t.x = t.x - W;
+	if (t.x >= W) t.x = t.x - W; //восстанавливаем значения которые мы увеличивали на 200 отнимая от координаты это число
 
 	if (t.y >= H) t.y = t.y - H;
 
@@ -150,45 +149,47 @@ void DoStep(stepinfo *Info, step *Step)
 
 	double p_s_lim = Vmax*V*E / (Lmax*Emax); // передел перемещения
 	
-	//Поиск ближайшей кормушки:
+	//Поиск ближайшей кормушки: энергия
 	int Ne = Info->field->Ne;
-	double se = dlina(Info->objects[0]->x, Info->objects[0]->y, myX, myY, H, W);
-	double xe = Info->objects[0]->x;
+	double se = dlina(Info->objects[0]->x, Info->objects[0]->y, myX, myY, H, W); 	//Расстояние до ближайшей кормушки: энергия
+
+	double xe = Info->objects[0]->x;//координаты пункта энергии
 	double ye = Info->objects[0]->y;
-	int ne = 0;
+	//0int ne = 0;
 	for (int i = 1; i < Ne; i++)
 	{
-		if (dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W) < se)
-		{
-			se = dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W);
-			ne = i;
-			xe = Info->objects[i]->x;
+		if (dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W) < se) //если расстояние от нас до нашей кормушки меньше чем 
+		{                                                                        //наше известное минимальное растояние до кормушки то se присваиваем найденное минимальное
+			
+			se = dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W); //найденно минимальное расстояние до кормушки
+			//ne = i;
+			xe = Info->objects[i]->x; //обновляем координаты пункта пополнения энергии (кормушки)
 			ye = Info->objects[i]->y;
 		}
 	}
 
 
-	//Поиск ближайшей мастерской:
+	//Поиск ближайшей мастерской: техническое состояния робота (почти то же самое что и для энергии)
 	int Nl = Info->field->Nl;
-	double sl = dlina(Info->objects[0]->x, Info->objects[0]->y, myX, myY, H, W);
-	double xl = Info->objects[Ne]->x;
+	double sl = dlina(Info->objects[Ne]->x, Info->objects[Ne]->y, myX, myY, H, W);
+	double xl = Info->objects[Ne]->x; //координаты пункта ТО
 	double yl = Info->objects[Ne]->y;
 	int nl = Ne;
 	for (int i = Ne+1; i < Ne + Nl; i++)
 	{
 		if (dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W) < sl)
 		{
-			sl = dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W);
-			nl = i;
-			xl = Info->objects[i]->x;
+			sl = dlina(Info->objects[i]->x, Info->objects[i]->y, myX, myY, H, W); //найденно минимальное расстояние до пункта ТО
+			nl = i; //номер ближайшео пункта ТО
+			xl = Info->objects[i]->x; //обновляем координаты пункта ТО
 			yl = Info->objects[i]->y;
 		}
 	}
 
-	//если требуется подзарядка
+	//если требуется подзарядка энергии
 	if (E < 0.9*Emax)
 	{
-		if (se <= p_s_lim)
+		if (se <= p_s_lim) //если расстояние до ближ кормшки меньше макс перемещения
 		{
 			if (V == 0)
 			{
@@ -211,7 +212,7 @@ void DoStep(stepinfo *Info, step *Step)
 
 			if (L < 0.70*Lmax)
 			{
-				if (sl < p_s_lim)
+				if (sl <= p_s_lim)
 				{
 					if (sl)
 						DoAction(Step, ACT_MOVE, shag(xl - myX, W), shag(yl - myY, H));
@@ -242,7 +243,7 @@ void DoStep(stepinfo *Info, step *Step)
 
 	}
 
-	//если требуется на пункт ТО
+	//если требуется на пункт ТО для пополнения технич состояния
 	if ((L < 0.90*Lmax) && (V != 0))
 	{
 		if (sl < p_s_lim)
@@ -318,9 +319,7 @@ void DoStep(stepinfo *Info, step *Step)
 		DoAction(Step, ACT_TECH, 0, 0.6*L, 0.4*L);
 	}
 
-	DoAction(Step, ACT_MOVE, int(p_s_lim), 0);
+	DoAction(Step, ACT_MOVE, int(p_s_lim), 0);// ходит по одной координате х
 
 	return;
 }
-
-
