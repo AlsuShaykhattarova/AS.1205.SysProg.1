@@ -1,4 +1,4 @@
-// robotbase.cpp: определяет экспортированные функции для приложения DLL.
+// robotbase.cpp: РѕРїСЂРµРґРµР»СЏРµС‚ СЌРєСЃРїРѕСЂС‚РёСЂРѕРІР°РЅРЅС‹Рµ С„СѓРЅРєС†РёРё РґР»СЏ РїСЂРёР»РѕР¶РµРЅРёСЏ DLL.
 //
 
 #include "stdafx.h"
@@ -16,13 +16,14 @@ void DoStep(stepinfo *Info, step *Step)
 	int l = Info->robots[id]->L;
 	int e = Info->robots[id]->E;
 	string filename = "../Robots/robotbase.08/alliance.txt";
-	int crite = 0.9*Info->field->Emax;
-	int critl = 0.9*Info->field->Lmax;
+	int crite = 0.95*Info->field->Emax;
+	int critl = 0.95*Info->field->Lmax;
 	double maxattack = Info->field->Rmax*Info->robots[id]->V/Info->field->Lmax*e/Info->field->Emax;;
 	double maxstep   = Info->field->Vmax*Info->robots[id]->V/Info->field->Lmax*e/Info->field->Emax;
 
-	//ищем союзников
+	//РёС‰РµРј СЃРѕСЋР·РЅРёРєРѕРІ
 	int al[3];
+	int def;
 	for (int i = 0; i < Info->field->rivals; i++)
 	{
 		if (Info->robots[i]->name == "robotbase.08" || Info->robots[i]->name == "robotbase.08.1")
@@ -31,9 +32,11 @@ void DoStep(stepinfo *Info, step *Step)
 			al[1] = Info->robots[i]->playerid;
 		else if (Info->robots[i]->name == "robotbase.19" || Info->robots[i]->name == "robotbase.19.1")
 			al[2] = Info->robots[i]->playerid;
+		else if (Info->robots[i]->name == "robotbase.25" || Info->robots[i]->name == "robotbase.25.1")
+			def = Info->robots[i]->playerid;
 	}
 
-	//определяем главного
+	//РѕРїСЂРµРґРµР»СЏРµРј РіР»Р°РІРЅРѕРіРѕ
 	bool leader = true;
 	for (int i = 0; i < id; i++)
 	{
@@ -44,14 +47,14 @@ void DoStep(stepinfo *Info, step *Step)
 		}
 	}
 
-	//если главный
-	//ищем врагов, раненых и ближайшие зарядки, определяем действия
+	//РµСЃР»Рё РіР»Р°РІРЅС‹Р№
+	//РёС‰РµРј РІСЂР°РіРѕРІ, СЂР°РЅРµРЅС‹С… Рё Р±Р»РёР¶Р°Р№С€РёРµ Р·Р°СЂСЏРґРєРё, РѕРїСЂРµРґРµР»СЏРµРј РґРµР№СЃС‚РІРёСЏ
 	if (leader)
 	{
 		bool neede = false;
 		bool needl = false;
 
-		//ищем зарядки
+		//РёС‰РµРј Р·Р°СЂСЏРґРєРё
 		int closestcharger, closesttech;
 		double mindist = 9000;
 		for (int i = 0; i < Info->field->Ne; i++)
@@ -78,19 +81,19 @@ void DoStep(stepinfo *Info, step *Step)
 			}
 		}
 
-		//ищем раненых
+		//РёС‰РµРј СЂР°РЅРµРЅС‹С…
 		int closestenemy = -1;
 		mindist = 9000;
 		for (int i = 0; i < Info->field->rivals; i++)
 		{
-			if (Info->robots[i]->alive && (Info->robots[i]->playerid == al[0] || Info->robots[i]->playerid == al[1] || Info->robots[i]->playerid == al[2]))	//если свой
+			if (Info->robots[i]->alive && (Info->robots[i]->playerid == al[0] || Info->robots[i]->playerid == al[1] || Info->robots[i]->playerid == al[2]))	//РµСЃР»Рё СЃРІРѕР№
 			{
-				if (Info->robots[i]->E < crite)		//если низкая энергия
+				if (Info->robots[i]->E < crite)		//РµСЃР»Рё РЅРёР·РєР°СЏ СЌРЅРµСЂРіРёСЏ
 					neede = true;
-				else if (Info->robots[i]->L < critl)	//если низкое техсостояние
+				else if (Info->robots[i]->L < critl)	//РµСЃР»Рё РЅРёР·РєРѕРµ С‚РµС…СЃРѕСЃС‚РѕСЏРЅРёРµ
 					needl = true;
 			}
-			else if (Info->robots[i]->alive)	//если враг
+			else if (Info->robots[i]->alive && Info->robots[i]->playerid != def)	//РµСЃР»Рё РІСЂР°Рі
 			{
 				int cx = Info->robots[i]->x;
 				int cy = Info->robots[i]->y;
@@ -103,7 +106,7 @@ void DoStep(stepinfo *Info, step *Step)
 			}
 		}
 
-		//определяем действия
+		//РѕРїСЂРµРґРµР»СЏРµРј РґРµР№СЃС‚РІРёСЏ
 		ofstream file(filename);
 		if (neede)
 			file << 0 << endl << closestcharger;
@@ -114,7 +117,7 @@ void DoStep(stepinfo *Info, step *Step)
 		file.close();
 	}
 
-	//для всех
+	//РґР»СЏ РІСЃРµС…
 	int action, target;
 	ifstream file(filename);
 	file >> action >> target;
@@ -127,7 +130,7 @@ void DoStep(stepinfo *Info, step *Step)
 
 	switch (action)
 	{	
-	case 0:		//идем на зарядку
+	case 0:		//РёРґРµРј РЅР° Р·Р°СЂСЏРґРєСѓ
 		{
 			int cx = Info->objects[target]->x;
 			int cy = Info->objects[target]->y;
@@ -144,14 +147,14 @@ void DoStep(stepinfo *Info, step *Step)
 				dy = cy - y;
 			}
 			DoAction(Step, ACT_MOVE, dx, dy);
-			if (e < Info->field->Emax || l < Info->field->Lmax)		//если нуждаемся в зарядке
-			{
+			//if (e < Info->field->Emax || l < Info->field->Lmax)		//РµСЃР»Рё РЅСѓР¶РґР°РµРјСЃСЏ РІ Р·Р°СЂСЏРґРєРµ
+			//{
 				int v = Info->field->Vmax;
 				if (v > l)
 					v = l;
 				DoAction(Step, ACT_TECH, 0, l-v, v);
-			}
-			else	//если можем атаковать
+			//}
+			/*else	//РµСЃР»Рё РјРѕР¶РµРј Р°С‚Р°РєРѕРІР°С‚СЊ
 			{
 				int v = l/2;
 				if (v > Info->field->Vmax)
@@ -173,51 +176,20 @@ void DoStep(stepinfo *Info, step *Step)
 						}
 					}
 				}
-			}
+			}*/
 			break;
 		}
-	case 1:		//идем атаковать
-		{
-			/*if (Info->history[id])
-			{
-
-				int prevx = x;
-				int prevy = y;
-				if (Info->history[id]->actions[ACT_MOVE])
-				{
-					prevx -= Info->history[id]->actions[ACT_MOVE]->dx;
-					prevy -= Info->history[id]->actions[ACT_MOVE]->dy;
-				}
-				for (int i = 0; i < Info->field->rivals; i++)
-				{
-					if (Info->robots[i]->alive && Info->robots[i]->playerid != al[0] && Info->robots[i]->playerid != al[1] && Info->robots[i]->playerid != al[2])
-					{
-						if (Info->history[i] && Info->history[i]->actions[ACT_ATTACK])
-						{
-							int mdx = 0;
-							int mdy = 0;
-							if (Info->history[i]->actions[ACT_MOVE])
-							{
-								mdx = Info->history[i]->actions[ACT_MOVE]->dx;
-								mdy = Info->history[i]->actions[ACT_MOVE]->dy;
-							}
-							int cprevx = Info->robots[i]->x - mdx;
-							int cprevy = Info->robots[i]->y - mdy;
-							if (cprevx + Info->history[i]->actions[ACT_ATTACK]->dx == prevx && cprevy + Info->history[i]->actions[ACT_ATTACK]->dy == prevy)		//если нас атаковали в прошлом ходу
-							{
-								DoAction(Step, ACT_TECH, 0, l, 0);
-								return;
-							}
-						}
-					}
-				}
-			}*/
+	case 1:		//РёРґРµРј Р°С‚Р°РєРѕРІР°С‚СЊ
+		{   double maxattack = Info->field->Rmax*Info->robots[id]->V/Info->field->Lmax*e/Info->field->Emax;;
+			double maxstep   = Info->field->Vmax*Info->robots[id]->V/Info->field->Lmax*e/Info->field->Emax;
+			
 			int v = l/2;
 			if (v > Info->field->Vmax)
 				v = Info->field->Vmax;
 			DoAction(Step, ACT_TECH, l-v-1, 1, v);
 			int cx = Info->robots[target]->x;
 			int cy = Info->robots[target]->y;
+
 			double cdist = sqrt(pow(cx - x, 2) + pow(cy - y, 2));
 			int dx,dy;
 			if (cdist > maxattack)
@@ -245,7 +217,10 @@ void DoStep(stepinfo *Info, step *Step)
 			{
 				dx = cx - x;
 				dy = cy - y;
+				if (dx != 0 && dy != 0 && Info->robots[id]->A > 0)
+			{
 				DoAction(Step, ACT_ATTACK, dx, dy);
+			}
 			}
 			break;
 		}
